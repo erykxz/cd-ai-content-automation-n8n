@@ -1,9 +1,5 @@
 # AI Content Automation with n8n
 
----
-
-## Project Overview
-
 This repository contains the workflow for an end-to-end AI-powered automation system designed to generate social media content from idea to finished video. Built from scratch using **n8n**, this system automates the entire content pipeline, making it ready for platforms like YouTube Shorts and Instagram Reels.
 
 The goal of this project was to understand the intricacies of AI content generation by building a custom, highly controllable, and cost-efficient solution, rather than relying solely on commercial tools.
