@@ -16,7 +16,7 @@ This AI workflow automates the following steps:
 * ✅ **Text-to-Speech Narration:** Utilizes **ElevenLabs** for high-quality voiceovers.
 * ✅ **Scene-Based Breakdown:** **OpenAI** intelligently segments the story into visual scenes.
 * ✅ **Visual Generation:** Generates relevant images for each scene using **OpenAI (DALL·E or GPT-4V)**.
-* ✅ **Local Media Storage:** Efficiently saves all generated text, audio, and image files.
+* ✅ **Local Media Storage:** Efficiently saves all generated text, audio, and image files to a configurable local directory.
 * ✅ **Final Video Creation:** Assembles the media into a ready-to-publish video using **FFmpeg**.
 * ✅ **Ready-to-Publish Content:** Outputs content optimized for social media platforms.
 
@@ -56,7 +56,8 @@ The core of this automation is an n8n workflow that orchestrates various AI APIs
 * An active **n8n** instance (self-hosted or cloud).
 * **OpenAI API Key**
 * **ElevenLabs API Key**
-* **FFmpeg** installed on the system where n8n can execute shell commands.
+* **FFmpeg** installed on the system where your n8n instance runs (and accessible in its PATH).
+* **Environment Variable Configuration:** You **must** define an environment variable `N8N_OUTPUT_BASE_PATH` in your n8n instance's `.env` file (or other environment configuration) pointing to the root directory where you want to save all generated content (e.g., `/home/user/ai_generated_content` or `C:\ai_content`).
 
 ### Installation & Setup
 
@@ -68,20 +69,27 @@ The core of this automation is an n8n workflow that orchestrates various AI APIs
 2.  **Import the n8n Workflow:**
     * Open your n8n instance.
     * Go to "Workflows" and click "New" or "Import from file".
-    * Import the workflow JSON file: `[Your n8n workflow file name here].json` (e.g., `ai_video_workflow.json`).
-3.  **Configure Credentials:**
-    * In your n8n workflow, locate the OpenAI and ElevenLabs nodes.
-    * Add your respective API keys as credentials within n8n.
-4.  **Update File Paths:**
-    * Adjust any file paths within the n8n nodes (e.g., "Write Binary File", "Execute Command" for FFmpeg) to match your local setup.
-5.  **Install FFmpeg:**
-    * Ensure FFmpeg is installed and accessible via the command line on your n8n server. Refer to the official FFmpeg documentation for installation instructions.
+    * Import the workflow JSON file: `[Your n8n workflow file name here].json` (e.g., `social_media_content_automation.json`).
+3.  **Configure API Credentials:**
+    * In n8n, go to "Credentials".
+    * **OpenAI:** Add or select an existing "OpenAI API" credential. The workflow uses a placeholder `YOUR_OPENAI_CREDENTIAL_ID` which will prompt you to link your actual credential upon import.
+    * **ElevenLabs:** The "Story Narration" (HTTP Request) node requires your ElevenLabs API Key in its `Header Parameters` section (look for `xi-api-key`). Enter your key there.
+4.  **Configure Output Paths (via Environment Variable):**
+    * Edit your n8n instance's `.env` file (or equivalent).
+    * Add the following line, replacing `/path/to/your/desired/output` with your actual desired root directory:
+        ```
+        N8N_OUTPUT_BASE_PATH=/path/to/your/desired/output
+        ```
+    * Restart your n8n instance for the environment variable to take effect.
+    * The workflow will automatically save JSON files to `N8N_OUTPUT_BASE_PATH/JSON/`, audio to `N8N_OUTPUT_BASE_PATH/audio/`, and images to `N8N_OUTPUT_BASE_PATH/images/`.
+5.  **FFmpeg Installation:**
+    * Ensure FFmpeg is installed and added to your system's PATH variable on the machine running n8n. You can download it from [ffmpeg.org](https://ffmpeg.org/download.html).
 
 ### Usage
 
 1.  **Activate the Workflow:** Set the n8n workflow to "Active" in your n8n instance.
-2.  **Trigger the Workflow:** You can manually execute the workflow for testing, or set up a scheduled trigger (e.g., daily) to automate content generation.
-3.  **Monitor Output:** Generated content (scripts, audio, images, and final videos) will be saved to your specified local directories.
+2.  **Trigger the Workflow:** You can manually execute the workflow for testing, or rely on the `Schedule Trigger` node (currently set for 9 PM daily) to automate content generation.
+3.  **Monitor Output:** Generated content (scripts, audio, images, and final videos) will be saved to the directories configured via `N8N_OUTPUT_BASE_PATH`.
 
 ## Challenges Faced
 
@@ -89,7 +97,7 @@ Building this system involved overcoming several hurdles:
 
 * Navigating dynamic JSON and expression references within n8n.
 * Dealing with API delays and failures, implementing robust error handling.
-* Precise FFmpeg syntax and managing file paths.
+* Precise FFmpeg syntax and managing file paths, especially for diverse operating systems.
 * Ensuring webhooks functioned correctly in active workflow states.
 
 ## Key Learnings
