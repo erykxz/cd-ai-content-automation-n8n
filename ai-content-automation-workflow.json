@@ -1,0 +1,496 @@
+{
+  "name": "Social Media Content Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 21
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1240,
+        -200
+      ],
+      "id": "79e8ff73-b981-4f91-a644-47a86aa8a42f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "GPT-3.5-TURBO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Write a highly engaging, cinematic short thriller story designed specifically for short-form video (1 minute runtime). The story must be intense, suspenseful, and emotionally gripping from the first second, with a shocking or clever twist at the end to keep viewers from swiping away.\n\n🧠 Key Intent:\nMake the viewer feel like they’re watching a scene from a short film — complete with tension, atmosphere, and mystery.\n\n🎬 Structure & Output Format:\nReturn the story in this structured JSON format:\n\n{\n  \"title\": \"<A suspenseful, punchy title that intrigues>\",\n  \"characters\": [\n    { \"name\": \"Character 1\", \"role\": \"e.g., Protagonist, Detective, AI, Stranger\", \"traits\": [\"brave\", \"paranoid\", \"calm under pressure\"] },\n    { \"name\": \"Character 2\", \"role\": \"e.g., Antagonist, Ally, Hidden Threat\", \"traits\": [\"secretive\", \"unpredictable\", \"cold\"] }\n  ],\n  \"plot\": \"Describe the story in 4–5 compact but vivid scenes (not paragraphs), packed with cinematic moments, emotional beats, and sound cues. Start with a hook, escalate tension, reveal a mystery or betrayal, then deliver a satisfying twist or revelation. Include settings, lighting, character action, and inner emotions to bring the visual to life.\",\n  \"moral\": \"End with a short, thought-provoking takeaway that adds depth or reflection to the story — e.g., 'Not everything lost stays buried.'\"\n}\n\n🎞️ Storytelling Guidance:\n- Write in a **visual storytelling style** with implied camera movements or scene cuts.\n- Use real-world or near-future settings (e.g., a smart home, a late-night diner, a subway, an abandoned office).\n- Create **visual tension early** (e.g., flickering lights, cryptic messages, audio distortions).\n- Use **audio and visual cues** that would enhance a video (e.g., rain, footsteps, breathing, glitching screen).\n- The **twist** should flip the viewer’s understanding or trigger a “wait… what?” moment.\n- The story should be self-contained yet feel like a larger world exists.\n\n📱 Platform Focus:\nDesign for Shorts/Reels attention span — **hook in first 3 seconds**, rise in tension, then resolve or twist by the 55–60 second mark.\n\n✂️ Target word count: 140–160 words total\n"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1020,
+        -200
+      ],
+      "id": "3647882e-2370-4ec4-a3a5-bd8f32380c34",
+      "name": "Get Story",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/EkK5I93UQWFDigLMpZcX",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "" // This is correctly empty for public sharing
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "={  \"text\": \"{{$json.story}}\",  \"voice_settings\": {  \"stability\": 0.7,  \"similarity_boost\": 0.75  }, \"output_format\": \"mp3_44100_128\", \n  \"response_format\": \"json\"      }",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        140,
+        -200
+      ],
+      "id": "49cfaec0-3f38-4ee2-8fb0-750527566ba8",
+      "name": "Story Narration",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "GPT-3.5-TURBO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Split the {{ $json.story }} into 12 short scenes. \n\nFor each scene\n\nRespond in **strict JSON format** as:\n\n{\n  \"title\": \"Story Title\",\n  \"scenes\": [\n    {\n      \"scene_number\": \"scene_1\",\n      \"character\": \"...\",\n      \"environment\": \"...\",\n      \"image_prompt\": \"...\"\n    },\n    {\n      \"scene_number\": \"scene_2\",\n      \"character\": \"...\",\n      \"environment\": \"...\",\n      \"image_prompt\": \"...\"\n    },\n    ...\n  ]\n}\n\nexamples\n\n{  `scene`: scene 1,\n- `character`: Who is in this scene (animal, child, cloud, star, etc.)\n- `theme`: The central idea or feeling (e.g., discovery, friendship, wonder)\n- `mood`: The emotional tone (e.g., joyful, peaceful, curious, dreamy)\n- `environment`: Where the scene takes place (e.g., floating island, sky castle)\n- `image_prompt`: A visual prompt to generate the image, referencing the environment, characters, and mood. Ensure visual continuity by referencing earlier characters and setting.\n}"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1200,
+        140
+      ],
+      "id": "b424da7d-0380-4589-a935-926423c9c013",
+      "name": "Split Scenes",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const scenes = $('Split Scenes').first().json.choices[0].message.content.scenes\nreturn scenes.map((scene,index) => {\n  return {\n    scene_no : index + 1,\n    character: scene.character,\n    enviroment: scene.environment,\n    img_prompt : scene.image_prompt\n  }\n})\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -500,
+        320
+      ],
+      "id": "ed7c0897-d76e-4ded-9de9-260a8296810b",
+      "name": "Format Scenes"
+    },
+    {
+      "parameters": {
+        "jsCode": "const story = $('Get Story').first().json.choices[0].message.content.plot;\nreturn { story }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        -200
+      ],
+      "id": "861a4817-28aa-4607-98e3-61d4299c4ac9",
+      "name": "Format Story"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "=Generate a cinematic illustration in a **strict vertical portrait format (1080x1920)**.\nDo not use landscape or square layout.\n\nScene: {{ $json.img_prompt }}\nCharacters: {{ $json.character }}\nEnvironment: {{ $json.environment }}\nCamera Angle: Centered and front-facing, waist-up or full-body shot.\nFraming: Subject must be **fully visible** within the frame with ample vertical space.\nComposition: Vertical layout, soft lighting, background elements should be subtle and not overpower the subject.\nStyle: Magical, dreamy, kid-friendly illustration with consistent art style across scenes.\nOutput resolution must be 1080x1920. Portrait format only.\n",
+        "options": {
+          "size": "1024x1792"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -320,
+        320
+      ],
+      "id": "422344d7-91d2-4bc6-9eb0-ae72109f1b36",
+      "name": "Generate an image",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Use the output from the node named \"Get Story\"\nconst story = $json;\n\n// Convert story to pretty JSON\nconst content = JSON.stringify(story, null, 2);\n\n// Create a buffer from the JSON string\nconst buffer = Buffer.from(content, 'utf8');\n\n// Return as binary data for writing\nreturn [\n  {\n    binary: {\n      data: {\n        data: buffer.toString('base64'),\n        mimeType: 'application/json',\n        fileName: `${$input.first().json.choices[0].message.content.title}.json`\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        -200
+      ],
+      "id": "d8d68247-c128-4680-a2d8-6fb0758c45ee",
+      "name": "Save Story"
+    },
+    {
+      "parameters": {
+        "jsCode": "const content = JSON.stringify($input.first().json.choices[0].message.content.scenes, null, 2);\n\n// Create a buffer from the JSON string\nconst buffer = Buffer.from(content, 'utf8');\n\n// Return as binary data for writing\nreturn [\n  {\n    binary: {\n      data: {\n        data: buffer.toString('base64'),\n        mimeType: 'application/json',\n        fileName: `${$input.first().json.choices[0].message.content.title}.json`\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -840,
+        140
+      ],
+      "id": "aa4e1441-9654-43f5-9d79-61543804829a",
+      "name": "Save Story Scenes"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        // UPDATED PATH: Use environment variable or default
+        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/JSON/{{ $('Get Story').item.json.choices[0].message.content.title }}.json",
+        "dataPropertyName": "=data",
+        "options": {
+          "append": false
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        -360
+      ],
+      "id": "c18d1409-717f-4703-8a9f-8527b7515794",
+      "name": "Save Story to Disk"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        // UPDATED PATH: Use environment variable or default
+        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/audio/story.mp3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -1380,
+        140
+      ],
+      "id": "e892774f-7260-4a2e-9f5d-00f0983ad811",
+      "name": "Save Story Audio to Disk"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        // UPDATED PATH: Use environment variable or default
+        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/JSON/{{ $('Get Story').item.json.choices[0].message.content.title }}_scenes.json",
+        "dataPropertyName": "=data",
+        "options": {
+          "append": false
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -840,
+        380
+      ],
+      "id": "f08b5dae-7d6a-4e9b-a461-89beaa7bff0c",
+      "name": "Save story scenes to disk"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        // UPDATED PATH: Use environment variable or default
+        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/images/scene_{{ $json.index }}.png",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        320
+      ],
+      "id": "e9e123db-aa73-4c8f-a73f-4f0cf29b363b",
+      "name": "Save Image to Disk"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (let i = 0; i < items.length; i++) {\n  items[i].json.index = i + 1; // Start index from 1\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        320
+      ],
+      "id": "de30751b-de0f-4a29-b0b2-461e392d7a7b",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        // UPDATED COMMAND: More generic FFmpeg command, using env variable for paths
+        "command": "ffmpeg -i \"{{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/audio/story.mp3\" -i \"{{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/images/scene_%d.png\" -filter_complex \"[0:a]adelay=0|0[a];[a]anull[a1]\" -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p \"{{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/final_video.mp4\"",
+        "options": {} // You might need to set 'cwd' if FFmpeg needs a specific working directory relative to your files
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        160,
+        320
+      ],
+      "id": "4ff72d0c-a4f2-4881-ab19-f947911f7fb8",
+      "name": "Create Final Video"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = $input.first().raw || $input.first().json;\nconst lines = output.stdout.split('\\n').filter(line => line.trim().startsWith('{'));\nreturn lines.map(line => {\n  try {\n    return { json: JSON.parse(line.trim()) };\n  } catch (e) {\n    return { json: { error: \"Invalid JSON output\" } };\n  }\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        380,
+        320
+      ],
+      "id": "f9b5c824-efe0-4c74-bf4b-09479c3fdbe8",
+      "name": "Acknowledge Success"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Story",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Story": {
+      "main": [
+        [
+          {
+            "node": "Save Story",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Story Narration": {
+      "main": [
+        [
+          {
+            "node": "Save Story Audio to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Scenes": {
+      "main": [
+        [
+          {
+            "node": "Save Story Scenes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Scenes": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Story": {
+      "main": [
+        [
+          {
+            "node": "Story Narration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Story": {
+      "main": [
+        [
+          {
+            "node": "Save Story to Disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Story",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Story Scenes": {
+      "main": [
+        [
+          {
+            "node": "Save story scenes to disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Scenes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Story to Disk": {
+      "main": [
+        []
+      ]
+    },
+    "Save Story Audio to Disk": {
+      "main": [
+        [
+          {
+            "node": "Split Scenes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save story scenes to disk": {
+      "main": [
+        []
+      ]
+    },
+    "Save Image to Disk": {
+      "main": [
+        [
+          {
+            "node": "Create Final Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Save Image to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Final Video": {
+      "main": [
+        [
+          {
+            "node": "Acknowledge Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b3449391-21b3-48db-a2ed-400779e97dc3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8daa65192bd9b950835bdbc64ec3c373b465a9562"
+  },
+  "id": "C0VdtmamHiM0oNBG",
+  "tags": []
+}
