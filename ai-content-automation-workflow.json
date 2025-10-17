@@ -63,7 +63,7 @@
           "parameters": [
             {
               "name": "xi-api-key",
-              "value": "" // This is correctly empty for public sharing
+              "value": "sk_046f0ca64c8654e6b1a6eebae409be3953ae80a98f310c93" // This is correctly empty for public sharing
             },
             {
               "name": "Content-Type",
