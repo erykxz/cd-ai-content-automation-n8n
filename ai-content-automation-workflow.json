@@ -208,7 +208,7 @@
       "parameters": {
         "operation": "write",
         // UPDATED PATH: Use environment variable or default
-        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/JSON/{{ $('Get Story').item.json.choices[0].message.content.title }}.json",
+        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH=/path/to/your/desired/output' }}/JSON/{{ $('Get Story').item.json.choices[0].message.content.title }}.json",
         "dataPropertyName": "=data",
         "options": {
           "append": false
@@ -227,7 +227,7 @@
       "parameters": {
         "operation": "write",
         // UPDATED PATH: Use environment variable or default
-        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/audio/story.mp3",
+        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH=/path/to/your/desired/output' }}/audio/story.mp3",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
@@ -243,7 +243,7 @@
       "parameters": {
         "operation": "write",
         // UPDATED PATH: Use environment variable or default
-        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/JSON/{{ $('Get Story').item.json.choices[0].message.content.title }}_scenes.json",
+        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH=/path/to/your/desired/output' }}/JSON/{{ $('Get Story').item.json.choices[0].message.content.title }}_scenes.json",
         "dataPropertyName": "=data",
         "options": {
           "append": false
@@ -262,7 +262,7 @@
       "parameters": {
         "operation": "write",
         // UPDATED PATH: Use environment variable or default
-        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/images/scene_{{ $json.index }}.png",
+        "fileName": "={{ $env.N8N_OUTPUT_BASE_PATH=/path/to/your/desired/output' }}/images/scene_{{ $json.index }}.png",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
@@ -290,7 +290,7 @@
     {
       "parameters": {
         // UPDATED COMMAND: More generic FFmpeg command, using env variable for paths
-        "command": "ffmpeg -i \"{{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/audio/story.mp3\" -i \"{{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/images/scene_%d.png\" -filter_complex \"[0:a]adelay=0|0[a];[a]anull[a1]\" -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p \"{{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/final_video.mp4\"",
+        "command": "ffmpeg -i \"{{ $env.N8N_OUTPUT_BASE_PATH=/path/to/your/desired/output' }}/audio/story.mp3\" -i \"{{ $env.N8N_OUTPUT_BASE_PATH=/path/to/your/desired/output' }}/images/scene_%d.png\" -filter_complex \"[0:a]adelay=0|0[a];[a]anull[a1]\" -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p \"{{ $env.N8N_OUTPUT_BASE_PATH || '/tmp/n8n_output' }}/final_video.mp4\"",
         "options": {} // You might need to set 'cwd' if FFmpeg needs a specific working directory relative to your files
       },
       "type": "n8n-nodes-base.executeCommand",
